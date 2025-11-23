@@ -45,9 +45,9 @@ You can download FFmpeg from the official website: [ffmpeg.org](https://ffmpeg.o
 ```xml
 
 <dependency>
-    <groupId>fr.anisekai</groupId>
-    <artifactId>ffmpeg4j</artifactId>
-    <version>1.0.0</version>
+  <groupId>fr.anisekai</groupId>
+  <artifactId>ffmpeg4j</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 
@@ -79,58 +79,26 @@ import java.nio.file.Paths;
 // ...
 
 try{
-Path inputFile = Paths.get("path/to/your/video.mkv");
-MediaFile mediaFile = MediaFile.of(inputFile);
+  Path inputFile = Paths.get("path/to/your/video.mkv");
+  MediaFile mediaFile = MediaFile.of(inputFile);
 
-    System.out.
+  System.out.println("File: " + mediaFile.getPath());
+  System.out.println("Total streams: " + mediaFile.getStreams().size());
 
-println("File: "+mediaFile.getPath());
-        System.out.
+  // Get specific stream types
+  System.out.println("Audio streams: " + mediaFile.getStreams(CodecType.AUDIO).size());
 
-println("Total streams: "+mediaFile.getStreams().
-
-size());
-
-        // Get specific stream types
-        System.out.
-
-println("Audio streams: "+mediaFile.getStreams(CodecType.AUDIO).
-
-size());
-
-        // Iterate over all streams
-        for(
-MediaStream stream :mediaFile.
-
-getStreams()){
-        System.out.
-
-printf(
-            "  Stream #%d: Type=%s, Codec=%s, Language=%s%n",
-            stream.getId(),
-            stream.
-
-getCodec().
-
-getType(),
-            stream.
-
-getCodec().
-
-name(),
-            stream.
-
-getMetadata().
-
-getOrDefault("language","N/A")
-        );
-                }
-
-                }catch(IOException |
-InterruptedException e){
-        e.
-
-printStackTrace();
+  // Iterate over all streams
+  for(MediaStream stream : mediaFile.getStreams()){
+    System.out.printf(
+      "  Stream #%d: Type=%s, Codec=%s, Language=%s%n",
+      stream.getId(),
+      stream.getCodec().getType(),
+      stream.getCodec().name(),
+      stream.getMetadata().getOrDefault("language","N/A"));
+  }
+} catch(IOException | InterruptedException e){
+  e.printStackTrace();
 }
 ```
 
@@ -151,9 +119,7 @@ Path resultPath = FFMpeg.convert(mediaFile)
                         .timeout(5, TimeUnit.MINUTES) // Set a 5-minute timeout
                         .run();
 
-System.out.
-
-println("Conversion complete. Output file: "+resultPath);
+System.out.println("Conversion complete. Output file: " + resultPath);
 ```
 
 ### 3. Splitting a File into Streams (Remuxing)
@@ -165,9 +131,7 @@ MediaFile mediaFile = MediaFile.of(Paths.get("input.mkv"));
 Path outputDir = Paths.get("extracted_streams");
 
 // Create the output directory if it doesn't exist
-Files.
-
-createDirectories(outputDir);
+Files.createDirectories(outputDir);
 
 // Copy all streams into separate files
 Map<MediaStream, Path> outputFiles = FFMpeg.convert(mediaFile)
@@ -178,13 +142,9 @@ Map<MediaStream, Path> outputFiles = FFMpeg.convert(mediaFile)
                                            .split() // Specify that we want separate files for each stream
                                            .run();
 
-outputFiles.
-
-forEach((stream, path) ->{
-        System.out.
-
-printf("Extracted stream %d to %s%n",stream.getId(),path);
-        });
+outputFiles.forEach((stream, path) -> {
+  System.out.printf("Extracted stream %d to %s%n",stream.getId(),path);
+});
 ```
 
 ### 4. Combining Separate Files
@@ -213,9 +173,7 @@ Path resultPath = FFMpeg.combine(videoMeta)
                         .file(outputFile)
                         .run();
 
-System.out.
-
-println("Successfully combined files into: "+resultPath);
+System.out.println("Successfully combined files into: "+resultPath);
 ```
 
 ### 5. Creating an MPEG-DASH Manifest
@@ -233,9 +191,7 @@ Path manifestPath = FFMpeg.mdp(mediaFile)
                           .as("manifest.mpd")
                           .run();
 
-System.out.
-
-println("DASH manifest created at: "+manifestPath);
+System.out.println("DASH manifest created at: "+manifestPath);
 ```
 
 ---
