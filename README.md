@@ -194,6 +194,35 @@ Path manifestPath = FFMpeg.mdp(mediaFile)
 System.out.println("DASH manifest created at: "+manifestPath);
 ```
 
+### 6. Tracking Conversion Progress
+
+Use `progressListener()` to receive machine-friendly progress reports while ffmpeg runs. The percentage
+is present when probing reported a media duration (see `MediaFile.getDuration()`).
+
+```java
+MediaFile mediaFile = MediaFile.of(Paths.get("input.mkv"));
+Path outputFile = Paths.get("output.mp4");
+
+// Listeners run on a dedicated monitor thread: keep them thread-safe.
+Path resultPath = FFMpeg.convert(mediaFile)
+                         .video(Codec.H264)
+                         .audio(Codec.AAC)
+                         .copySubtitle()
+                         .progressListener(report -> {
+                           String percent = report.percent().isPresent()
+                                   ? String.format("%.1f%%", report.percent().getAsDouble())
+                                   : "n/a";
+                           System.out.printf("frame=%d time=%.1fs speed=%.1fx (%s)%n",
+                                   report.frame(), report.outTimeUs() / 1_000_000.0,
+                                   report.speed(), percent);
+                         })
+                         .file(outputFile)
+                         .timeout(3, TimeUnit.HOURS)
+                         .run();
+
+System.out.println("Conversion complete. Output file: " + resultPath);
+```
+
 ---
 
 ## Dependencies
