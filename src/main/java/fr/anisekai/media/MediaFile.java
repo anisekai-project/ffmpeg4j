@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -73,18 +74,47 @@ public final class MediaFile {
             streams.add(stream);
         }
 
-        return new MediaFile(file, streams);
+        return new MediaFile(file, streams, parseDuration(probe));
+    }
+
+    /**
+     * Extract the media duration from a ffprobe document, when available. Some inputs
+     * report no duration (or {@code "N/A"}), in which case an empty result is returned
+     * instead of failing.
+     *
+     * @param probe
+     *         The ffprobe JSON document.
+     *
+     * @return The media duration, or empty when unknown.
+     */
+    private static Duration parseDuration(JSONObject probe) {
+
+        if (!probe.has("format")) {
+            return null;
+        }
+
+        try {
+            double seconds = Double.parseDouble(probe.getJSONObject("format").optString("duration", "N/A"));
+            if (Double.isNaN(seconds) || Double.isInfinite(seconds) || seconds < 0) {
+                return null;
+            }
+            return Duration.ofMillis((long) (seconds * 1000));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private final Path              path;
     private final List<MediaStream> streams;
+    private final Duration          duration;
 
-    private MediaFile(Path path, Collection<MediaStream> streams) {
+    private MediaFile(Path path, Collection<MediaStream> streams, Duration duration) {
 
-        this.path    = path.toAbsolutePath().normalize();
-        this.streams = streams.stream()
-                              .sorted(Comparator.comparingInt(MediaStream::getId))
-                              .toList();
+        this.path     = path.toAbsolutePath().normalize();
+        this.streams  = streams.stream()
+                               .sorted(Comparator.comparingInt(MediaStream::getId))
+                               .toList();
+        this.duration = duration;
     }
 
     /**
@@ -105,6 +135,16 @@ public final class MediaFile {
     public List<MediaStream> getStreams() {
 
         return this.streams;
+    }
+
+    /**
+     * Retrieve the media duration reported by ffprobe, when available.
+     *
+     * @return The media duration, or empty when the probed input reports none.
+     */
+    public Optional<Duration> getDuration() {
+
+        return Optional.ofNullable(this.duration);
     }
 
     /**

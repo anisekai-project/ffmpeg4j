@@ -94,10 +94,10 @@ public class CommandLineTests {
         Assertions.assertEquals(6, json.getJSONArray("streams").length(), "Stream count mismatch");
 
         List<String> argv = recordedArgv(argvLog);
-        Assertions.assertEquals(7, argv.size(), "Argument count mismatch");
+        Assertions.assertEquals(8, argv.size(), "Argument count mismatch");
         Assertions.assertEquals(
-                List.of("-show_streams", "-of", "json", "-i", input.toString(), "-o"),
-                argv.subList(0, 6), "Argument mismatch");
+                List.of("-show_streams", "-show_format", "-of", "json", "-i", input.toString(), "-o"),
+                argv.subList(0, 7), "Argument mismatch");
     }
 
     @Test
