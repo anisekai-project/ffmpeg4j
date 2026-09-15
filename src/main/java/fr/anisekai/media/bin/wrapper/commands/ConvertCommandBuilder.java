@@ -8,6 +8,7 @@ import fr.anisekai.media.enums.Codec;
 import fr.anisekai.media.enums.CodecType;
 import fr.anisekai.media.interfaces.MediaStreamMapper;
 import fr.anisekai.media.interfaces.MediaStreamNamer;
+import fr.anisekai.media.interfaces.ProgressListener;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +26,8 @@ public class ConvertCommandBuilder {
     private       Codec             subtitle;
     private       Path              outputDir;
     private       MediaStreamMapper streamMapper = MediaStreamMapper.DEFAULT;
-    private MediaStreamNamer  streamNamer  = MediaStreamNamer.DEFAULT;
+    private       MediaStreamNamer  streamNamer  = MediaStreamNamer.DEFAULT;
+    private       ProgressListener  progressListener;
 
     /**
      * Create a new {@link ConvertCommandBuilder} targeting the provided {@link MediaFile}.
@@ -184,6 +186,21 @@ public class ConvertCommandBuilder {
     }
 
     /**
+     * Set the {@link ProgressListener} receiving conversion progress reports while ffmpeg runs.
+     * When unset, no progress is tracked and the command behaves exactly as before.
+     *
+     * @param progressListener
+     *         The listener, or {@code null} for none.
+     *
+     * @return The same instance for chaining.
+     */
+    public ConvertCommandBuilder progressListener(ProgressListener progressListener) {
+
+        this.progressListener = progressListener;
+        return this;
+    }
+
+    /**
      * Set the base {@link Path} into which ffmpeg will be run. If using {@link #split()}, this will define the
      * directory into which all files will be extracted. If using {@link #file(String)}, this will be used as the
      * containing directory to resolve the full path of the output.
@@ -243,7 +260,8 @@ public class ConvertCommandBuilder {
                 this.subtitle,
                 this.streamMapper,
                 this.outputDir,
-                filename
+                filename,
+                this.progressListener
         );
     }
 
@@ -262,7 +280,8 @@ public class ConvertCommandBuilder {
                 this.subtitle,
                 this.streamMapper,
                 this.outputDir,
-                this.streamNamer
+                this.streamNamer,
+                this.progressListener
         );
     }
 

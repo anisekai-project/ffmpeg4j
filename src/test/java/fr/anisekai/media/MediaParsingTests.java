@@ -46,6 +46,9 @@ public class MediaParsingTests {
         Assertions.assertEquals(Codec.AC3, streams.get(2).getCodec(), "Codec mismatch");
         Assertions.assertEquals(Codec.SUBRIP, streams.get(3).getCodec(), "Codec mismatch");
         Assertions.assertEquals(Codec.ASS, streams.get(4).getCodec(), "Codec mismatch");
+
+        // The fixture holds no format section: duration stays unknown.
+        Assertions.assertTrue(media.getDuration().isEmpty(), "Duration mismatch");
     }
 
     @Test
@@ -94,5 +97,34 @@ public class MediaParsingTests {
         Assertions.assertThrows(
                 UnsupportedEncodingException.class,
                 () -> MediaFile.of(Path.of("fixture.mkv"), probe));
+    }
+
+    @Test
+    @DisplayName("probe | Parses the format duration when reported")
+    public void testDurationReported() throws Exception {
+
+        JSONObject probe = probeFixture();
+        probe.put("format", new JSONObject().put("duration", "123.456"));
+
+        MediaFile media = MediaFile.of(Path.of("fixture.mkv"), probe);
+
+        Assertions.assertEquals(
+                java.time.Duration.ofMillis(123456),
+                media.getDuration().orElseThrow(),
+                "Duration mismatch");
+    }
+
+    @Test
+    @DisplayName("probe | Ignores missing or unparsable durations")
+    public void testDurationUnknown() throws Exception {
+
+        for (String duration : new String[]{"N/A", "bogus", "-5.0", ""}) {
+            JSONObject probe = probeFixture();
+            probe.put("format", new JSONObject().put("duration", duration));
+
+            MediaFile media = MediaFile.of(Path.of("fixture.mkv"), probe);
+
+            Assertions.assertTrue(media.getDuration().isEmpty(), "Duration mismatch for " + duration);
+        }
     }
 }

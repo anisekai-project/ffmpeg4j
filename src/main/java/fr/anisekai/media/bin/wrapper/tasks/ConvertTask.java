@@ -8,6 +8,7 @@ import fr.anisekai.media.bin.wrapper.FFMpegCommandTask;
 import fr.anisekai.media.enums.Codec;
 import fr.anisekai.media.interfaces.MediaStreamMapper;
 import fr.anisekai.media.interfaces.MediaStreamNamer;
+import fr.anisekai.media.interfaces.ProgressListener;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,6 +48,34 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
      */
     public static ConvertTask<Path> of(MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, String filename) {
 
+        return ConvertTask.of(input, video, audio, subtitle, streamMapper, outputDir, filename, null);
+    }
+
+    /**
+     * Create a {@link ConvertTask} that will convert a {@link MediaFile} into another file,
+     * reporting progress to the provided listener.
+     *
+     * @param input
+     *         The {@link MediaFile} to convert.
+     * @param video
+     *         The {@link Codec} to use for the video.
+     * @param audio
+     *         The {@link Codec} to use for the audio.
+     * @param subtitle
+     *         The {@link Codec} to use for subtitle.
+     * @param streamMapper
+     *         The {@link MediaStreamMapper} to use to add {@link MediaStream} to ffmpeg.
+     * @param outputDir
+     *         The {@link Path} to use as output directory.
+     * @param filename
+     *         The filename for the output file.
+     * @param progressListener
+     *         The listener receiving conversion progress reports, or {@code null} for none.
+     *
+     * @return A {@link ConvertTask}.
+     */
+    public static ConvertTask<Path> of(MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, String filename, ProgressListener progressListener) {
+
         return new ConvertTask<>(
                 ConvertTask::getOutputFile,
                 input,
@@ -55,7 +84,8 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
                 subtitle,
                 streamMapper,
                 outputDir,
-                filename
+                filename,
+                progressListener
         );
     }
 
@@ -81,6 +111,34 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
      */
     public static ConvertTask<Map<MediaStream, Path>> of(MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, MediaStreamNamer streamNamer) {
 
+        return ConvertTask.of(input, video, audio, subtitle, streamMapper, outputDir, streamNamer, null);
+    }
+
+    /**
+     * Create a {@link ConvertTask} that will convert a {@link MediaFile} into multiple file for each stream,
+     * reporting progress to the provided listener.
+     *
+     * @param input
+     *         The {@link MediaFile} to convert.
+     * @param video
+     *         The {@link Codec} to use for the video.
+     * @param audio
+     *         The {@link Codec} to use for the audio.
+     * @param subtitle
+     *         The {@link Codec} to use for subtitle.
+     * @param streamMapper
+     *         The {@link MediaStreamMapper} to use to add {@link MediaStream} to ffmpeg.
+     * @param outputDir
+     *         The {@link Path} to use as output directory.
+     * @param streamNamer
+     *         The {@link MediaStreamNamer} to use to get the output name for a {@link MediaStream}.
+     * @param progressListener
+     *         The listener receiving conversion progress reports, or {@code null} for none.
+     *
+     * @return A {@link ConvertTask}.
+     */
+    public static ConvertTask<Map<MediaStream, Path>> of(MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, MediaStreamNamer streamNamer, ProgressListener progressListener) {
+
         return new ConvertTask<>(
                 ConvertTask::getOutputFiles,
                 input,
@@ -89,7 +147,8 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
                 subtitle,
                 streamMapper,
                 outputDir,
-                streamNamer
+                streamNamer,
+                progressListener
         );
     }
 
@@ -107,33 +166,49 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
     private final Path                   outputFile;
     private final Map<MediaStream, Path> outputFiles;
 
+    private final ProgressListener progressListener;
+    private       Path             progressFile;
+    private       ProgressMonitor  progressMonitor;
+
     private ConvertTask(Function<ConvertTask<?>, T> resolver, MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, String filename) {
 
+        this(resolver, input, video, audio, subtitle, streamMapper, outputDir, filename, null);
+    }
+
+    private ConvertTask(Function<ConvertTask<?>, T> resolver, MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, String filename, ProgressListener progressListener) {
+
         super(Binary.ffmpeg());
-        this.resolver     = resolver;
-        this.input        = input;
-        this.video        = video;
-        this.audio        = audio;
-        this.subtitle     = subtitle;
-        this.streamMapper = streamMapper;
-        this.outputDir    = outputDir;
-        this.filename     = filename;
-        this.outputFile   = outputDir.resolve(this.filename);
-        this.outputFiles  = null;
+        this.resolver          = resolver;
+        this.input             = input;
+        this.video             = video;
+        this.audio             = audio;
+        this.subtitle          = subtitle;
+        this.streamMapper      = streamMapper;
+        this.outputDir         = outputDir;
+        this.filename          = filename;
+        this.outputFile        = outputDir.resolve(this.filename);
+        this.outputFiles       = null;
+        this.progressListener  = progressListener;
     }
 
     private ConvertTask(Function<ConvertTask<?>, T> resolver, MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, MediaStreamNamer streamNamer) {
 
+        this(resolver, input, video, audio, subtitle, streamMapper, outputDir, streamNamer, null);
+    }
+
+    private ConvertTask(Function<ConvertTask<?>, T> resolver, MediaFile input, Codec video, Codec audio, Codec subtitle, MediaStreamMapper streamMapper, Path outputDir, MediaStreamNamer streamNamer, ProgressListener progressListener) {
+
         super(Binary.ffmpeg());
-        this.resolver    = resolver;
-        this.input       = input;
-        this.video       = video;
-        this.audio       = audio;
-        this.subtitle    = subtitle;
-        this.outputDir   = outputDir;
-        this.filename    = null;
-        this.outputFile  = null;
-        this.outputFiles = new HashMap<>();
+        this.resolver         = resolver;
+        this.input            = input;
+        this.video            = video;
+        this.audio            = audio;
+        this.subtitle         = subtitle;
+        this.outputDir        = outputDir;
+        this.filename         = null;
+        this.outputFile       = null;
+        this.outputFiles      = new HashMap<>();
+        this.progressListener = progressListener;
 
         this.streamMapper = streamMapper.then((binary, stream, codec) -> {
             String filename = streamNamer.name(stream, codec);
@@ -194,6 +269,13 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
         ffmpeg.setBaseDir(this.outputDir);
         ffmpeg.addArguments("-i", this.input.getPath().toString());
 
+        if (this.progressListener != null) {
+            this.progressFile = Files.createTempFile("ffmpeg-progress-", ".log");
+            ffmpeg.addArguments("-progress", this.progressFile.toString());
+            this.progressMonitor = new ProgressMonitor(this.progressFile, this.input.getDuration(), this.progressListener);
+            this.progressMonitor.start();
+        }
+
         if (this.filename != null) {
             this.preprocessSingleFile(ffmpeg);
         } else {
@@ -227,6 +309,31 @@ public final class ConvertTask<T> extends FFMpegCommandTask<T> {
             if (Files.exists(outputFile)) {
                 throw new IllegalStateException("Could not delete " + outputFile);
             }
+        }
+    }
+
+    @Override
+    public T run() throws IOException, InterruptedException {
+
+        try {
+            return super.run();
+        } finally {
+            this.stopProgress();
+        }
+    }
+
+    private void stopProgress() {
+
+        if (this.progressMonitor != null) {
+            this.progressMonitor.close();
+            this.progressMonitor = null;
+        }
+        if (this.progressFile != null) {
+            try {
+                Files.deleteIfExists(this.progressFile);
+            } catch (IOException ignored) {
+            }
+            this.progressFile = null;
         }
     }
 

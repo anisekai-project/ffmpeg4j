@@ -40,6 +40,7 @@ public class ProbeTask extends FFMpegCommandTask<JSONObject> {
         }
 
         ffmpeg.addArgument("-show_streams");
+        ffmpeg.addArgument("-show_format");
         ffmpeg.addArguments("-of", "json");
         ffmpeg.addArguments("-i", this.input.toString());
         ffmpeg.addArguments("-o", this.output.toString());
