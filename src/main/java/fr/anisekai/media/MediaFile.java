@@ -37,10 +37,28 @@ public final class MediaFile {
     public static MediaFile of(Path file) throws IOException, InterruptedException {
 
         JSONObject json = FFMpeg.probe(file).intoTemporary().timeout(1, TimeUnit.MINUTES).run();
+        return MediaFile.of(file, json);
+    }
+
+    /**
+     * Construct a {@link MediaFile} from an already-parsed ffprobe document, without
+     * spawning any process. Useful to test stream mapping against recorded fixtures.
+     *
+     * @param file
+     *         The file the document was probed from.
+     * @param probe
+     *         The ffprobe JSON document, holding a {@code streams} array.
+     *
+     * @return A {@link MediaFile} containing the parsed media streams.
+     *
+     * @throws IOException
+     *         Threw if the document holds an unsupported codec.
+     */
+    public static MediaFile of(Path file, JSONObject probe) throws IOException {
 
         Set<MediaStream> streams = new HashSet<>();
 
-        JSONArray streamArray = json.getJSONArray("streams");
+        JSONArray streamArray = probe.getJSONArray("streams");
         for (int i = 0; i < streamArray.length(); i++) {
             JSONObject streamData = streamArray.getJSONObject(i);
 

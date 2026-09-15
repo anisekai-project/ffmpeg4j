@@ -1,0 +1,144 @@
+{
+  "streams": [
+    {
+      "index": 2,
+      "codec_name": "ac3",
+      "codec_type": "audio",
+      "disposition": {
+        "default": 0,
+        "dub": 0,
+        "original": 0,
+        "comment": 0,
+        "lyrics": 0,
+        "karaoke": 0,
+        "forced": 0,
+        "hearing_impaired": 0,
+        "visual_impaired": 0,
+        "clean_effects": 0,
+        "attached_pic": 0,
+        "captions": 0,
+        "descriptions": 0,
+        "dependent": 0,
+        "still_image": 0
+      },
+      "tags": {
+        "language": "fre"
+      }
+    },
+    {
+      "index": 0,
+      "codec_name": "h264",
+      "codec_type": "video",
+      "disposition": {
+        "default": 1,
+        "dub": 0,
+        "original": 0,
+        "comment": 0,
+        "lyrics": 0,
+        "karaoke": 0,
+        "forced": 0,
+        "hearing_impaired": 0,
+        "visual_impaired": 0,
+        "clean_effects": 0,
+        "attached_pic": 0,
+        "captions": 0,
+        "descriptions": 0,
+        "dependent": 0,
+        "still_image": 0,
+        "future_flag": 1
+      },
+      "tags": {
+        "title": "Main",
+        "language": "eng"
+      }
+    },
+    {
+      "index": 4,
+      "codec_name": "ass",
+      "codec_type": "subtitle",
+      "disposition": {
+        "default": 0,
+        "dub": 0,
+        "original": 0,
+        "comment": 0,
+        "lyrics": 0,
+        "karaoke": 0,
+        "forced": 0,
+        "hearing_impaired": 0,
+        "visual_impaired": 0,
+        "clean_effects": 0,
+        "attached_pic": 0,
+        "captions": 0,
+        "descriptions": 0,
+        "dependent": 0,
+        "still_image": 0
+      },
+      "tags": {
+        "title": "Francais",
+        "language": "fre"
+      }
+    },
+    {
+      "index": 1,
+      "codec_name": "aac",
+      "codec_type": "audio",
+      "disposition": {
+        "default": 1,
+        "dub": 0,
+        "original": 0,
+        "comment": 0,
+        "lyrics": 0,
+        "karaoke": 0,
+        "forced": 0,
+        "hearing_impaired": 0,
+        "visual_impaired": 0,
+        "clean_effects": 0,
+        "attached_pic": 0,
+        "captions": 0,
+        "descriptions": 0,
+        "dependent": 0,
+        "still_image": 0
+      },
+      "tags": {
+        "title": "Stereo",
+        "language": "eng"
+      }
+    },
+    {
+      "index": 3,
+      "codec_name": "subrip",
+      "codec_type": "subtitle",
+      "disposition": {
+        "default": 0,
+        "dub": 0,
+        "original": 0,
+        "comment": 0,
+        "lyrics": 0,
+        "karaoke": 0,
+        "forced": 1,
+        "hearing_impaired": 0,
+        "visual_impaired": 0,
+        "clean_effects": 0,
+        "attached_pic": 0,
+        "captions": 0,
+        "descriptions": 0,
+        "dependent": 0,
+        "still_image": 0
+      },
+      "tags": {
+        "title": "English",
+        "language": "eng"
+      }
+    },
+    {
+      "index": 5,
+      "codec_name": "mjpeg",
+      "codec_type": "attachment",
+      "disposition": {
+        "default": 0,
+        "attached_pic": 1
+      },
+      "tags": {}
+    }
+  ]
+}
