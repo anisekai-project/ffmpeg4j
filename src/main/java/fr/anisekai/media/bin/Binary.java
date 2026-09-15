@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 /**
  * Utility class allowing a better handling of program arguments.
@@ -133,6 +134,33 @@ public class Binary {
      */
     public int execute(long timeout, TimeUnit unit) throws IOException, InterruptedException {
 
+        return this.execute(timeout, unit, () -> false);
+    }
+
+    /**
+     * Execute this {@link Binary} and wait for the provided timeout, aborting early when the cancellation
+     * signal turns {@code true}. Interrupting the calling thread does not abort the execution, only the
+     * cancellation signal does.
+     *
+     * @param timeout
+     *         The amount of unit to wait for the execution to finish.
+     * @param unit
+     *         The unit of scale for the timeout.
+     * @param cancelled
+     *         The cancellation signal, polled while waiting. When it turns {@code true}, the process is
+     *         destroyed and an {@link InterruptedException} is thrown.
+     *
+     * @return The exit code of the executed program.
+     *
+     * @throws IOException
+     *         Thrown if the program could not be executed.
+     * @throws InterruptedException
+     *         Thrown if the execution was cancelled through the cancellation signal.
+     * @throws IllegalStateException
+     *         Thrown if the program did not finish its execution before the timeout as been reached.
+     */
+    public int execute(long timeout, TimeUnit unit, BooleanSupplier cancelled) throws IOException, InterruptedException {
+
         // Commit hold args
         this.commitHoldArguments();
 
@@ -149,13 +177,24 @@ public class Binary {
 
         process.getOutputStream().close();
 
-        boolean exitedNormally = process.waitFor(timeout, unit);
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (true) {
+            if (cancelled.getAsBoolean()) {
+                process.destroyForcibly();
+                throw new InterruptedException("Execution cancelled");
+            }
 
-        if (!exitedNormally) {
-            process.destroyForcibly();
-            throw new IllegalStateException("Process timed out");
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) {
+                process.destroyForcibly();
+                throw new IllegalStateException("Process timed out");
+            }
+
+            // Wait in slices so cancellation is honored promptly.
+            if (process.waitFor(Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(250)), TimeUnit.NANOSECONDS)) {
+                return process.exitValue();
+            }
         }
-        return process.exitValue();
     }
 
 }

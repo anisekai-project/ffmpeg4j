@@ -3,7 +3,9 @@ package fr.anisekai.media.bin.wrapper;
 import fr.anisekai.media.bin.Binary;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 /**
  * Abstract implementation of {@link FFMpegCommand} that handle process execution and timeout.
@@ -15,8 +17,9 @@ public abstract class FFMpegCommandTask<T> implements FFMpegCommand<T> {
 
     private final Binary binary;
 
-    private long     timeout = 1;
-    private TimeUnit unit    = TimeUnit.MINUTES;
+    private long            timeout   = 1;
+    private TimeUnit        unit      = TimeUnit.MINUTES;
+    private BooleanSupplier cancelled = () -> false;
 
     /**
      * Create this {@link FFMpegCommandTask} with a specific {@link Binary} instance.
@@ -34,6 +37,13 @@ public abstract class FFMpegCommandTask<T> implements FFMpegCommand<T> {
 
         this.timeout = timeout;
         this.unit    = unit;
+        return this;
+    }
+
+    @Override
+    public FFMpegCommand<T> cancellable(BooleanSupplier cancelled) {
+
+        this.cancelled = Objects.requireNonNull(cancelled, "cancelled");
         return this;
     }
 
@@ -67,7 +77,7 @@ public abstract class FFMpegCommandTask<T> implements FFMpegCommand<T> {
     public T run() throws IOException, InterruptedException {
 
         this.preprocess(this.binary);
-        int code = this.binary.execute(this.timeout, this.unit);
+        int code = this.binary.execute(this.timeout, this.unit, this.cancelled);
         return this.postprocess(code);
     }
 
