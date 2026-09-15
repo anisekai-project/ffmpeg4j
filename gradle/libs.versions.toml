@@ -1,9 +1,9 @@
 [versions]
-catalogUpdater = "1.0.1"
-jetbrainsAnnotations = "26.0.2-1"
-json = "20250517"
-junitBom = "6.0.0"
-reckon = "1.0.1"
+catalogUpdater = "1.1.1"
+jetbrainsAnnotations = "26.1.0"
+json = "20260814"
+junitBom = "6.1.3"
+reckon = "2.0.0"
 
 [libraries]
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
