@@ -14,22 +14,28 @@ public class Binary {
 
     /**
      * Create a new {@link Binary} instance for the ffprobe program.
+     * <p>
+     * The executable can be overridden with the {@code ffprobe.binary} system property,
+     * which is useful to point at a custom location or a test stub. Defaults to {@code ffprobe}.
      *
      * @return A {@link Binary} instance.
      */
     public static Binary ffprobe() {
 
-        return new Binary("ffprobe");
+        return new Binary(System.getProperty("ffprobe.binary", "ffprobe"));
     }
 
     /**
      * Create a new {@link Binary} instance for the ffmpeg program.
+     * <p>
+     * The executable can be overridden with the {@code ffmpeg.binary} system property,
+     * which is useful to point at a custom location or a test stub. Defaults to {@code ffmpeg}.
      *
      * @return A {@link Binary} instance.
      */
     public static Binary ffmpeg() {
 
-        return new Binary("ffmpeg");
+        return new Binary(System.getProperty("ffmpeg.binary", "ffmpeg"));
     }
 
     private final List<String> args;
